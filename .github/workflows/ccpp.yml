@@ -9,9 +9,6 @@ jobs:
     - uses: actions/checkout@v2
       with:
         ref: supla-pushover-develop
-    - name: Setup C++
-      uses: Trass3r/setup-cpp@v1
-         
     - name: make all
-      run: make all
+      run: cd supla-console-client/Release && make all
     
