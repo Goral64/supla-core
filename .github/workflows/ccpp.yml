@@ -4,13 +4,14 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    
     steps:
     - uses: actions/checkout@v2
       with:
         ref: supla-pushover-develop
+    - name: Setup C++
+      uses: Trass3r/setup-cpp@v1
+         
     - name: make all
       run: make all
     
