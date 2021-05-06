@@ -1,5 +1,7 @@
 *.pydevproject
 .metadata
+*.cfg
+*.sample
 .gradle
 bin/
 tmp/
