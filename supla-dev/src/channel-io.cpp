@@ -152,8 +152,9 @@ char channelio_read_from_file(client_device_channel *channel, char log_err) {
               TSC_SuplaChannelExtendedValue channel_extendedvalue;
 
               double total =
-                  payload["total_m3"].as<double>();  // jsoncons::jsonpointer::get(payload,
-                                                     // "total_m3").as<double>();
+                  payload["total_m3"]
+                      .as<double>();  // jsoncons::jsonpointer::get(payload,
+                                      // "total_m3").as<double>();
 
               _supla_int64_t tt = total * 1000;
 
