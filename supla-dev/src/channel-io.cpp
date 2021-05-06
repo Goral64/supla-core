@@ -25,8 +25,8 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <string>
 
 #include "gpio.h"
@@ -74,24 +74,22 @@ void channelio_raise_valuechanged(client_device_channel *channel) {
   }
 }
 
-bool read_file_to_string(const std::string & p_name, std::string & p_content)
-{
-    // We create the file object, saying I want to read it
-    std::fstream file(p_name.c_str(), std::fstream::in) ;
+bool read_file_to_string(const std::string &p_name, std::string &p_content) {
+  // We create the file object, saying I want to read it
+  std::fstream file(p_name.c_str(), std::fstream::in);
 
-    // We verify if the file was successfully opened
-    if(file.is_open())
-    {
-        // We use the standard getline function to read the file into
-        // a std::string, stoping only at "\0"
-        std::getline(file, p_content, '\0') ;
+  // We verify if the file was successfully opened
+  if (file.is_open()) {
+    // We use the standard getline function to read the file into
+    // a std::string, stoping only at "\0"
+    std::getline(file, p_content, '\0');
 
-        // We return the success of the operation
-        return ! file.bad() ;
-    }
+    // We return the success of the operation
+    return !file.bad();
+  }
 
-    // The file was not successfully opened, so returning false
-    return false ;
+  // The file was not successfully opened, so returning false
+  return false;
 }
 
 bool isFileOk(std::string filename, int file_write_sec) {
@@ -131,21 +129,56 @@ char channelio_read_from_file(client_device_channel *channel, char log_err) {
       supla_log(LOG_DEBUG, "reading channel_%d value from file %s",
                 channel->getNumber(), channel->getFileName().c_str());
       try {
-
-	std::string content;
-        if (channel->getFunction() == SUPLA_CHANNELFNC_IC_WATER_METER){
+        std::string content;
+        if (channel->getFunction() == SUPLA_CHANNELFNC_IC_WATER_METER) {
           read_result = read_file_to_string(channel->getFileName(), content);
         } else {
-          read_result = file_read_sensor(channel->getFileName().c_str(), 
-             &val1, &val2, &val3);
-	};
-
+          read_result = file_read_sensor(channel->getFileName().c_str(), &val1,
+                                         &val2, &val3);
+        };
 
         char tmp_value[SUPLA_CHANNELVALUE_SIZE];
 
         switch (channel->getFunction()) {
           case SUPLA_CHANNELFNC_IC_WATER_METER: {
-          	supla_log(LOG_DEBUG, "readed content %s",  content.c_str());
+            if (!read_result) return 0;
+
+            jsoncons::json payload;
+
+            try {
+              payload = jsoncons::json::parse(content);
+
+              TSC_ImpulseCounter_ExtendedValue ic_ev;
+              TSC_SuplaChannelExtendedValue channel_extendedvalue;
+
+              double total =
+                  payload["total_m3"].as<double>();  // jsoncons::jsonpointer::get(payload,
+                                                     // "total_m3").as<double>();
+
+              _supla_int64_t tt = total * 1000;
+
+              char newValue[SUPLA_CHANNELVALUE_SIZE];
+
+              memset(newValue, 0, SUPLA_CHANNELVALUE_SIZE);
+
+              memcpy(newValue, &tt, sizeof(newValue));
+
+              channel->setValue(newValue);
+
+              if (read_result == 1) channel->setValue(newValue);
+
+              if (read_result == 0 && log_err == 1)
+                supla_log(LOG_ERR, "Can't read file %s",
+                          channel->getFileName().c_str());
+
+              return 1;
+
+            } catch (jsoncons::ser_error &ser) {
+              supla_log(LOG_PERROR, ser.what());
+            } catch (jsoncons::jsonpointer::jsonpointer_error &error) {
+              supla_log(LOG_PERROR, error.what());
+            }
+            supla_log(LOG_DEBUG, "readed content %s", content.c_str());
           } break;
           case SUPLA_CHANNELFNC_POWERSWITCH:
           case SUPLA_CHANNELFNC_LIGHTSWITCH:
