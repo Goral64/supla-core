@@ -2,6 +2,7 @@
 .metadata
 *.cfg
 *.sample
+*.cfg.sample
 .gradle
 bin/
 tmp/
