@@ -175,4 +175,3 @@ char w1_dht_read(const char *w1, double *temp, double *humidity,
   return 0;
 #endif
 }
-
