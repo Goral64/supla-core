@@ -25,6 +25,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
+#include <iostream>
+#include <fstream>
+#include <string>
+
 #include "gpio.h"
 #include "mcp23008.h"
 #include "supla-client-lib/eh.h"
@@ -70,6 +74,26 @@ void channelio_raise_valuechanged(client_device_channel *channel) {
   }
 }
 
+bool read_file_to_string(const std::string & p_name, std::string & p_content)
+{
+    // We create the file object, saying I want to read it
+    std::fstream file(p_name.c_str(), std::fstream::in) ;
+
+    // We verify if the file was successfully opened
+    if(file.is_open())
+    {
+        // We use the standard getline function to read the file into
+        // a std::string, stoping only at "\0"
+        std::getline(file, p_content, '\0') ;
+
+        // We return the success of the operation
+        return ! file.bad() ;
+    }
+
+    // The file was not successfully opened, so returning false
+    return false ;
+}
+
 bool isFileOk(std::string filename, int file_write_sec) {
   struct timeval now;
   gettimeofday(&now, NULL);
@@ -107,12 +131,22 @@ char channelio_read_from_file(client_device_channel *channel, char log_err) {
       supla_log(LOG_DEBUG, "reading channel_%d value from file %s",
                 channel->getNumber(), channel->getFileName().c_str());
       try {
-        read_result = file_read_sensor(channel->getFileName().c_str(), &val1,
-                                       &val2, &val3);
+
+	std::string content;
+        if (channel->getFunction() == SUPLA_CHANNELFNC_IC_WATER_METER){
+          read_result = read_file_to_string(channel->getFileName(), content);
+        } else {
+          read_result = file_read_sensor(channel->getFileName().c_str(), 
+             &val1, &val2, &val3);
+	};
+
 
         char tmp_value[SUPLA_CHANNELVALUE_SIZE];
 
         switch (channel->getFunction()) {
+          case SUPLA_CHANNELFNC_IC_WATER_METER: {
+          	supla_log(LOG_DEBUG, "readed content %s",  content.c_str());
+          } break;
           case SUPLA_CHANNELFNC_POWERSWITCH:
           case SUPLA_CHANNELFNC_LIGHTSWITCH:
           case SUPLA_CHANNELFNC_STAIRCASETIMER:
