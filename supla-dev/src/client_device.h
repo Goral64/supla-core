@@ -46,6 +46,8 @@ class client_device_channel {
   std::string commandTopic;
   std::string stateTemplate;
   std::string commandTemplate;
+  std::string commandTemplateOn;
+  std::string commandTemplateOff;
   std::string execute;
   std::string executeOn;
   std::string executeOff;
@@ -84,6 +86,8 @@ class client_device_channel {
   std::string getCommandTopic(void);
   std::string getStateTemplate(void);
   std::string getCommandTemplate(void);
+  std::string getCommandTemplateOn(void);
+  std::string getCommandTemplateOff(void);
   std::string getExecute(void);
   std::string getExecuteOn(void);
   std::string getExecuteOff(void);
@@ -108,6 +112,8 @@ class client_device_channel {
   void setCommandTopic(const char *commandTopic);
   void setStateTemplate(const char *stateTemplate);
   void setCommandTemplate(const char *commandTemplate);
+  void setCommandTemplateOn(const char *commandTemplateOn);
+  void setCommandTemplateOff(const char *commandTemplateOff);
   void setExecute(const char *execute);
   void setExecuteOn(const char *execute);
   void setExecuteOff(const char *execute);

@@ -70,6 +70,8 @@ void channelio_set_mqtt_topic_out(unsigned char number, const char *value);
 
 void channelio_set_mqtt_template_in(unsigned char number, const char *value);
 void channelio_set_mqtt_template_out(unsigned char number, const char *value);
+void channelio_set_mqtt_template_on_out(unsigned char number, const char *value);
+void channelio_set_mqtt_template_off_out(unsigned char number, const char *value);
 
 void channelio_set_mqtt_retain(unsigned char number, unsigned char value);
 void channelio_set_battery_powered(unsigned char number, unsigned char value);
