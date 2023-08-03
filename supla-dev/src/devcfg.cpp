@@ -194,6 +194,10 @@ void devcfg_channel_cfg(const char *section, const char *name,
     channelio_set_mqtt_template_in(number, value);
   } else if (strcasecmp(name, "command_template") == 0 && strlen(value) > 0) {
     channelio_set_mqtt_template_out(number, value);
+  } else if (strcasecmp(name, "command_template_on") == 0 && strlen(value) > 0) {
+    channelio_set_mqtt_template_on_out(number, value);
+  } else if (strcasecmp(name, "command_template_off") == 0 && strlen(value) > 0) {
+    channelio_set_mqtt_template_off_out(number, value);
   } else if (strcasecmp(name, "payload_on") == 0 && strlen(value) > 0) {
     channelio_set_payload_on(number, value);
   } else if (strcasecmp(name, "payload_off") == 0 && strlen(value) > 0) {

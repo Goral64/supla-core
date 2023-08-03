@@ -23,6 +23,8 @@
 void publish_mqtt_message_for_channel(client_device_channel* channel) {
   std::string topic = channel->getCommandTopic();
   std::string payload = channel->getCommandTemplate();
+  std::string payloadOn = channel->getCommandTemplateOn();
+  std::string payloadOff = channel->getCommandTemplateOff();
 
   double value;
   bool publish = false;
@@ -82,6 +84,11 @@ void publish_mqtt_message_for_channel(client_device_channel* channel) {
       channel->getValue(cv);
       bool hi = cv[0] > 0;
 
+      if(hi && payloadOn.length() > 0) {
+    	  payload = payloadOn;
+      } else if(payloadOff.length() > 0) {
+    	  payload = payloadOff;
+      }
       replace_string_in_place(&payload, "$value$", std::to_string(hi));
 
       publish = true;

@@ -33,6 +33,8 @@ client_device_channel::client_device_channel(int number) {
   this->commandTopic = "";
   this->stateTemplate = "";
   this->commandTemplate = "";
+  this->commandTemplateOn = "";
+  this->commandTemplateOff = "";
   this->execute = "";
   this->executeOn = "";
   this->executeOff = "";
@@ -463,6 +465,12 @@ std::string client_device_channel::getStateTemplate(void) {
 std::string client_device_channel::getCommandTemplate(void) {
   return this->commandTemplate;
 }
+std::string client_device_channel::getCommandTemplateOn(void) {
+  return this->commandTemplateOn;
+}
+std::string client_device_channel::getCommandTemplateOff(void) {
+  return this->commandTemplateOff;
+}
 std::string client_device_channel::getExecute(void) { return this->execute; }
 std::string client_device_channel::getExecuteOn(void) {
   return this->executeOn;
@@ -511,6 +519,12 @@ void client_device_channel::setStateTemplate(const char *stateTemplate) {
 }
 void client_device_channel::setCommandTemplate(const char *commandTemplate) {
   this->commandTemplate = std::string(commandTemplate);
+}
+void client_device_channel::setCommandTemplateOn(const char *commandTemplateOn) {
+  this->commandTemplateOn = std::string(commandTemplateOn);
+}
+void client_device_channel::setCommandTemplateOff(const char *commandTemplateOff) {
+  this->commandTemplateOff = std::string(commandTemplateOff);
 }
 void client_device_channel::setExecute(const char *execute) {
   this->execute = std::string(execute);
