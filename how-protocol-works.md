@@ -13,6 +13,8 @@ we can find common prefixes ```DCS```, ```SDC```, ```DS```, ```SD```, ```CS```, 
 
 # Packet sending
 
+
+
 Only struct that is send directly is [TSuplaDataPacket](https://github.com/magx2/supla-core/blob/master/supla-common/proto.h#L228) all others are serialized into ```TSuplaDataPacket.data``` field.
 
 ```C
