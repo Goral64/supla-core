@@ -559,14 +559,16 @@ void channelio_set_mqtt_template_out(unsigned char number, const char *value) {
 
   if (channel) channel->setCommandTemplate(value);
 }
-void channelio_set_mqtt_template_on_out(unsigned char number, const char *value) {
+void channelio_set_mqtt_template_on_out(unsigned char number,
+                                        const char *value) {
   if (channels == NULL) return;
 
   client_device_channel *channel = channels->find_channel(number);
 
   if (channel) channel->setCommandTemplateOn(value);
 }
-void channelio_set_mqtt_template_off_out(unsigned char number, const char *value) {
+void channelio_set_mqtt_template_off_out(unsigned char number,
+                                         const char *value) {
   if (channels == NULL) return;
 
   client_device_channel *channel = channels->find_channel(number);

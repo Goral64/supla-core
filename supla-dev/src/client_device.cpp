@@ -520,10 +520,12 @@ void client_device_channel::setStateTemplate(const char *stateTemplate) {
 void client_device_channel::setCommandTemplate(const char *commandTemplate) {
   this->commandTemplate = std::string(commandTemplate);
 }
-void client_device_channel::setCommandTemplateOn(const char *commandTemplateOn) {
+void client_device_channel::setCommandTemplateOn(
+    const char *commandTemplateOn) {
   this->commandTemplateOn = std::string(commandTemplateOn);
 }
-void client_device_channel::setCommandTemplateOff(const char *commandTemplateOff) {
+void client_device_channel::setCommandTemplateOff(
+    const char *commandTemplateOff) {
   this->commandTemplateOff = std::string(commandTemplateOff);
 }
 void client_device_channel::setExecute(const char *execute) {
