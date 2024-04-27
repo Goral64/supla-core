@@ -52,7 +52,11 @@ bool handle_subscribed_message(client_device_channel* channel,
   try {
     payload = jsoncons::json::parse(message);
 
-    if (channel->getPayloadValue().length() > 0) {
+      // Log the payload content
+      std::string payload_str = payload.to_string();
+      supla_log(LOG_DEBUG, "Payload content: %s", payload_str.c_str());
+
+      if (channel->getPayloadValue().length() > 0) {
       std::string payloadValue = std::string(channel->getPayloadValue());
 
       template_value =
@@ -152,6 +156,17 @@ bool handle_subscribed_message(client_device_channel* channel,
 
       } break;
       case SUPLA_CHANNELFNC_HUMIDITYANDTEMPERATURE: {
+        if ( value_exists(payload, "/temperature") && value_exists(payload, "/humidity") ) {
+          double temp = payload["temperature"].as<double>();
+          double hum = payload["humidity"].as<double>();
+
+          channel->setTempHum(temp, hum);
+          channel->getValue(value);
+
+          if (cb) cb(channelNumber, value, user_data);
+
+          return true;
+        }
         std::string::size_type sz;  // alias of size_t
         double temp = std::stod(template_value, &sz);
         double hum = std::stod(template_value.substr(sz));
