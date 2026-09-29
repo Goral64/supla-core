@@ -19,6 +19,8 @@
 #include "MqttChannelMessageProviderTest.h"
 
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "gmock/gmock.h"
 #include "jsonconfig/channel/general_purpose_measurement_config.h"
@@ -107,6 +109,91 @@ TEST_F(MqttChannelMessageProviderTest, powerSwitch) {
       "homeassistant/switch/7720767494dd87196e1896c7cbab707c/754/config"));
 
   ASSERT_FALSE(dataExists(provider));
+}
+
+TEST_F(MqttChannelMessageProviderTest, homeAssistantDiscoveryDisabledByUser) {
+  _mqtt_db_data_row_channel_t row_channel;
+  fillChannelData(&row_channel);
+  row_channel.json_config.set_user_config(
+      "{\"homeAssistant\":{\"homeAssistantDisabled\":true}}");
+  provider->set_data_row(&row_channel);
+
+  ASSERT_TRUE(fetchAndCompare(
+      provider, NULL, "RELAY", false,
+      "supla/7720767494dd87196e1896c7cbab707c/devices/%i/channels/%i/type",
+      row_channel.device_id, row_channel.channel_id));
+
+  ASSERT_TRUE(fetchAndCompare(
+      provider, NULL, "POWERSWITCH", false,
+      "supla/7720767494dd87196e1896c7cbab707c/devices/%i/channels/%i/function",
+      row_channel.device_id, row_channel.channel_id));
+
+  ASSERT_TRUE(fetchAndCompare(
+      provider, NULL, "Socket", false,
+      "supla/7720767494dd87196e1896c7cbab707c/devices/%i/channels/%i/caption",
+      row_channel.device_id, row_channel.channel_id));
+
+  ASSERT_TRUE(fetchAndCompare(
+      provider, NULL, "false", false,
+      "supla/7720767494dd87196e1896c7cbab707c/devices/%i/channels/%i/hidden",
+      row_channel.device_id, row_channel.channel_id));
+
+  ASSERT_FALSE(dataExists(provider));
+}
+
+TEST_F(MqttChannelMessageProviderTest,
+       homeAssistantDiscoveryDisabledByDeviceFlag) {
+  _mqtt_db_data_row_channel_t row_channel;
+  fillChannelData(&row_channel);
+  row_channel.device_flags =
+      SUPLA_DEVICE_FLAG_HOME_ASSISTANT_DISCOVERY_DISABLED;
+  provider->set_data_row(&row_channel);
+
+  char *topic_name = NULL;
+  void *message = NULL;
+  size_t message_size = 0;
+  int count = 0;
+
+  while (provider->fetch(NULL, &topic_name, &message, &message_size)) {
+    EXPECT_EQ(strstr(topic_name, "homeassistant/"), nullptr);
+    free(topic_name);
+    free(message);
+    topic_name = NULL;
+    message = NULL;
+    count++;
+  }
+
+  EXPECT_EQ(count, 4);
+}
+
+TEST_F(MqttChannelMessageProviderTest,
+       homeAssistantDiscoveryEnabledByUserDespiteDeviceFlag) {
+  _mqtt_db_data_row_channel_t row_channel;
+  fillChannelData(&row_channel);
+  row_channel.device_flags =
+      SUPLA_DEVICE_FLAG_HOME_ASSISTANT_DISCOVERY_DISABLED;
+  row_channel.json_config.set_user_config(
+      "{\"homeAssistant\":{\"homeAssistantDisabled\":false}}");
+  provider->set_data_row(&row_channel);
+
+  char *topic_name = NULL;
+  void *message = NULL;
+  size_t message_size = 0;
+  bool ha_config_found = false;
+
+  while (provider->fetch(NULL, &topic_name, &message, &message_size)) {
+    if (strcmp(topic_name,
+               "homeassistant/switch/7720767494dd87196e1896c7cbab707c/754/"
+               "config") == 0) {
+      ha_config_found = true;
+    }
+    free(topic_name);
+    free(message);
+    topic_name = NULL;
+    message = NULL;
+  }
+
+  EXPECT_TRUE(ha_config_found);
 }
 
 void MqttChannelMessageProviderTest::electricityMeterTest(int channel_flags) {

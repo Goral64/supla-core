@@ -28,6 +28,7 @@
 #include "device/extended_value/channel_ic_extended_value.h"
 #include "jsonconfig/channel/action_trigger_config.h"
 #include "jsonconfig/channel/general_purpose_measurement_config.h"
+#include "jsonconfig/channel/home_assistant_config.h"
 #include "jsonconfig/channel/hvac_config.h"
 #include "log.h"
 #include "user/user.h"
@@ -1827,6 +1828,13 @@ bool supla_mqtt_channel_message_provider::get_home_assistant_cfgitem(
     unsigned short index, const char *topic_prefix, char **topic_name,
     void **message, size_t *message_size) {
   if (!row->device_enabled || row->channel_hidden || topic_name == NULL) {
+    return false;
+  }
+
+  home_assistant_config ha_config(&row->json_config);
+  if (ha_config.is_discovery_disabled(
+          row->device_flags &
+          SUPLA_DEVICE_FLAG_HOME_ASSISTANT_DISCOVERY_DISABLED)) {
     return false;
   }
 
