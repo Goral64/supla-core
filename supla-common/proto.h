@@ -610,6 +610,8 @@ extern char sproto_tag[SUPLA_TAG_SIZE];
 #define SUPLA_DEVICE_FLAG_CALCFG_SET_CFG_MODE_PASSWORD_SUPPORTED \
   0x10000  // ver. >= 28
 #define SUPLA_DEVICE_FLAG_SYNC_DONE_SUPPORTED 0x20000           // ver. >= 29
+#define SUPLA_DEVICE_FLAG_HOME_ASSISTANT_DISCOVERY_DISABLED \
+  0x40000  // ver. >= 29
 
 // BIT map definition for TDS_SuplaRegisterDevice_F::ConfigFields (64 bit)
 // type: TDeviceConfig_StatusLed

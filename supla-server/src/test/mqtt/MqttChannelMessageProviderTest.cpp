@@ -19,6 +19,8 @@
 #include "MqttChannelMessageProviderTest.h"
 
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include "gmock/gmock.h"
 #include "jsonconfig/channel/general_purpose_measurement_config.h"
@@ -109,6 +111,105 @@ TEST_F(MqttChannelMessageProviderTest, powerSwitch) {
   ASSERT_FALSE(dataExists(provider));
 }
 
+TEST_F(MqttChannelMessageProviderTest, homeAssistantDiscoveryDisabledByUser) {
+  _mqtt_db_data_row_channel_t row_channel;
+  fillChannelData(&row_channel);
+  row_channel.json_config.set_user_config(
+      "{\"homeAssistant\":{\"homeAssistantDisabled\":true}}");
+  provider->set_data_row(&row_channel);
+
+  ASSERT_TRUE(fetchAndCompare(
+      provider, NULL, "RELAY", false,
+      "supla/7720767494dd87196e1896c7cbab707c/devices/%i/channels/%i/type",
+      row_channel.device_id, row_channel.channel_id));
+
+  ASSERT_TRUE(fetchAndCompare(
+      provider, NULL, "POWERSWITCH", false,
+      "supla/7720767494dd87196e1896c7cbab707c/devices/%i/channels/%i/function",
+      row_channel.device_id, row_channel.channel_id));
+
+  ASSERT_TRUE(fetchAndCompare(
+      provider, NULL, "Socket", false,
+      "supla/7720767494dd87196e1896c7cbab707c/devices/%i/channels/%i/caption",
+      row_channel.device_id, row_channel.channel_id));
+
+  ASSERT_TRUE(fetchAndCompare(
+      provider, NULL, "false", false,
+      "supla/7720767494dd87196e1896c7cbab707c/devices/%i/channels/%i/hidden",
+      row_channel.device_id, row_channel.channel_id));
+
+  ASSERT_TRUE(fetchAndCompare(
+      provider, NULL, NULL, false,
+      "homeassistant/switch/7720767494dd87196e1896c7cbab707c/%i/config",
+      row_channel.channel_id));
+
+  ASSERT_FALSE(dataExists(provider));
+}
+
+TEST_F(MqttChannelMessageProviderTest,
+       homeAssistantDiscoveryDisabledByDeviceFlag) {
+  _mqtt_db_data_row_channel_t row_channel;
+  fillChannelData(&row_channel);
+  row_channel.device_flags =
+      SUPLA_DEVICE_FLAG_HOME_ASSISTANT_DISCOVERY_DISABLED;
+  provider->set_data_row(&row_channel);
+
+  char *topic_name = NULL;
+  void *message = NULL;
+  size_t message_size = 0;
+  int count = 0;
+  int ha_count = 0;
+
+  while (provider->fetch(NULL, &topic_name, &message, &message_size)) {
+    if (strstr(topic_name, "homeassistant/") == topic_name) {
+      EXPECT_EQ(message, nullptr);
+      EXPECT_EQ(message_size, (size_t)0);
+      ha_count++;
+    }
+    free(topic_name);
+    free(message);
+    topic_name = NULL;
+    message = NULL;
+    message_size = 0;
+    count++;
+  }
+
+  EXPECT_EQ(count, 5);
+  EXPECT_EQ(ha_count, 1);
+}
+
+TEST_F(MqttChannelMessageProviderTest,
+       homeAssistantDiscoveryEnabledByUserDespiteDeviceFlag) {
+  _mqtt_db_data_row_channel_t row_channel;
+  fillChannelData(&row_channel);
+  row_channel.device_flags =
+      SUPLA_DEVICE_FLAG_HOME_ASSISTANT_DISCOVERY_DISABLED;
+  row_channel.json_config.set_user_config(
+      "{\"homeAssistant\":{\"homeAssistantDisabled\":false}}");
+  provider->set_data_row(&row_channel);
+
+  char *topic_name = NULL;
+  void *message = NULL;
+  size_t message_size = 0;
+  bool ha_config_found = false;
+
+  while (provider->fetch(NULL, &topic_name, &message, &message_size)) {
+    if (strcmp(topic_name,
+               "homeassistant/switch/7720767494dd87196e1896c7cbab707c/754/"
+               "config") == 0) {
+      EXPECT_NE(message, nullptr);
+      EXPECT_GT(message_size, (size_t)0);
+      ha_config_found = true;
+    }
+    free(topic_name);
+    free(message);
+    topic_name = NULL;
+    message = NULL;
+  }
+
+  EXPECT_TRUE(ha_config_found);
+}
+
 TEST_F(MqttChannelMessageProviderTest, specializedBinarySensorNames) {
   struct sensor_data {
     int function;
@@ -122,8 +223,7 @@ TEST_F(MqttChannelMessageProviderTest, specializedBinarySensorNames) {
 
   char value[SUPLA_CHANNEL_CAPTION_MAXSIZE];
   for (const auto &sensor : sensors) {
-    provider->channel_function_to_string(sensor.function, value,
-                                         sizeof(value));
+    provider->channel_function_to_string(sensor.function, value, sizeof(value));
     EXPECT_STREQ(sensor.function_name, value);
 
     provider->get_not_empty_caption(sensor.function, nullptr, nullptr, value);
