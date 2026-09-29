@@ -3124,4 +3124,163 @@ TEST_F(MqttPublisherIntegrationTest, actionTrigger) {
   }
 }
 
+TEST_F(MqttPublisherIntegrationTest, homeAssistantDiscoveryDisabledByUser) {
+  waitForConnection();
+  waitForPublications(778);
+  getLibAdapter()->published_clear();
+
+  runSqlScript("DisableHomeAssistantDiscoveryForChannel56.sql");
+  getDS()->on_devicedata_changed(121, 40);
+
+  waitForActions(15);
+  // print_expected();
+
+  const char *expectedData[] = {
+      "supla/45004b208185b207175522c7471f8526/devices/40/enabled",
+      "true",
+      "supla/45004b208185b207175522c7471f8526/devices/40/last_connected",
+      "2019-09-17T16:33:44Z",
+      "supla/45004b208185b207175522c7471f8526/devices/40/last_ipv4",
+      "5.173.144.227",
+      "supla/45004b208185b207175522c7471f8526/devices/40/manufacturer",
+      "Itead",
+      "supla/45004b208185b207175522c7471f8526/devices/40/name",
+      "SONOFF-TH16",
+      "supla/45004b208185b207175522c7471f8526/devices/40/proto_ver",
+      "7",
+      "supla/45004b208185b207175522c7471f8526/devices/40/soft_ver",
+      "2.5.3",
+      "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/type",
+      "RELAY",
+      "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/function",
+      "POWERSWITCH",
+      "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/caption",
+      NULL,
+      "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/hidden",
+      "false",
+      "homeassistant/switch/45004b208185b207175522c7471f8526/56/config",
+      NULL,
+      "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/state/"
+      "connected",
+      "false",
+      "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/state/on",
+      NULL,
+      "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/state/"
+      "overcurrent_relay_off",
+      NULL};
+
+  verify_published(expectedData, sizeof(expectedData) / sizeof(void *));
+}
+
+TEST_F(MqttPublisherIntegrationTest,
+       homeAssistantDiscoveryDisabledByDeviceFlag) {
+  waitForConnection();
+  waitForPublications(778);
+  getLibAdapter()->published_clear();
+
+  runSqlScript("SetHomeAssistantDiscoveryDisabledFlagForDevice40.sql");
+  getDS()->on_devicedata_changed(121, 40);
+
+  waitForActions(15);
+  // print_expected();
+
+  {
+    const char *expectedData[] = {
+        "supla/45004b208185b207175522c7471f8526/devices/40/enabled",
+        "true",
+        "supla/45004b208185b207175522c7471f8526/devices/40/last_connected",
+        "2019-09-17T16:33:44Z",
+        "supla/45004b208185b207175522c7471f8526/devices/40/last_ipv4",
+        "5.173.144.227",
+        "supla/45004b208185b207175522c7471f8526/devices/40/manufacturer",
+        "Itead",
+        "supla/45004b208185b207175522c7471f8526/devices/40/name",
+        "SONOFF-TH16",
+        "supla/45004b208185b207175522c7471f8526/devices/40/proto_ver",
+        "7",
+        "supla/45004b208185b207175522c7471f8526/devices/40/soft_ver",
+        "2.5.3",
+        "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/type",
+        "RELAY",
+        "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/"
+        "function",
+        "POWERSWITCH",
+        "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/caption",
+        NULL,
+        "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/hidden",
+        "false",
+        "homeassistant/switch/45004b208185b207175522c7471f8526/56/config",
+        NULL,
+        "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/state/"
+        "connected",
+        "false",
+        "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/state/"
+        "on",
+        NULL,
+        "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/state/"
+        "overcurrent_relay_off",
+        NULL};
+
+    verify_published(expectedData, sizeof(expectedData) / sizeof(void *));
+  }
+
+  getLibAdapter()->published_clear();
+
+  runSqlScript("EnableHomeAssistantDiscoveryForChannel56.sql");
+  getDS()->on_devicedata_changed(121, 40);
+
+  waitForActions(15);
+  // print_expected();
+
+  {
+    const char *expectedData[] = {
+        "supla/45004b208185b207175522c7471f8526/devices/40/enabled",
+        "true",
+        "supla/45004b208185b207175522c7471f8526/devices/40/last_connected",
+        "2019-09-17T16:33:44Z",
+        "supla/45004b208185b207175522c7471f8526/devices/40/last_ipv4",
+        "5.173.144.227",
+        "supla/45004b208185b207175522c7471f8526/devices/40/manufacturer",
+        "Itead",
+        "supla/45004b208185b207175522c7471f8526/devices/40/name",
+        "SONOFF-TH16",
+        "supla/45004b208185b207175522c7471f8526/devices/40/proto_ver",
+        "7",
+        "supla/45004b208185b207175522c7471f8526/devices/40/soft_ver",
+        "2.5.3",
+        "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/type",
+        "RELAY",
+        "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/"
+        "function",
+        "POWERSWITCH",
+        "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/caption",
+        NULL,
+        "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/hidden",
+        "false",
+        "homeassistant/switch/45004b208185b207175522c7471f8526/56/config",
+        "{\"avty\":{\"topic\":\"supla/45004b208185b207175522c7471f8526/devices/"
+        "40/channels/56/state/"
+        "connected\",\"payload_available\":\"true\",\"payload_not_"
+        "available\":\"false\"},\"~\":\"supla/45004b208185b207175522c7471f8526/"
+        "devices/40/"
+        "channels/56\",\"device\":{\"ids\":\"supla-iodevice-40\",\"mf\":"
+        "\"Itead\",\"name\":\"SONOFF-TH16\",\"sw\":\"2.5.3\"},\"name\":"
+        "\"On/Off switch\",\"uniq_id\":\"supla_56\",\"qos\":0,\"ret\":"
+        "false,\"opt\":false,\"stat_t\":\"~/state/on\",\"cmd_t\":\"~/set/"
+        "on\",\"stat_on\":\"true\",\"stat_off\":\"false\",\"pl_on\":"
+        "\"true\",\"pl_off\":\"false\"}",
+        "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/state/"
+        "connected",
+        "false",
+        "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/state/"
+        "on",
+        NULL,
+        "supla/45004b208185b207175522c7471f8526/devices/40/channels/56/state/"
+        "overcurrent_relay_off",
+        NULL};
+
+    verify_published(expectedData, sizeof(expectedData) / sizeof(void *));
+  }
+}
+
 } /* namespace testing */

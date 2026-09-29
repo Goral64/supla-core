@@ -1831,13 +1831,6 @@ bool supla_mqtt_channel_message_provider::get_home_assistant_cfgitem(
     return false;
   }
 
-  home_assistant_config ha_config(&row->json_config);
-  if (ha_config.is_discovery_disabled(
-          row->device_flags &
-          SUPLA_DEVICE_FLAG_HOME_ASSISTANT_DISCOVERY_DISABLED)) {
-    return false;
-  }
-
   switch (row->channel_func) {
     case SUPLA_CHANNELFNC_ELECTRICITY_METER:
     case SUPLA_CHANNELFNC_IC_ELECTRICITY_METER:
@@ -2058,8 +2051,26 @@ bool supla_mqtt_channel_message_provider::get_message_at_index(
     }
 
     if (index > 3) {
-      return get_home_assistant_cfgitem(index - 4, topic_prefix, topic_name,
-                                        message, message_size);
+      if (!get_home_assistant_cfgitem(index - 4, topic_prefix, topic_name,
+                                      message, message_size)) {
+        return false;
+      }
+
+      home_assistant_config ha_config(&row->json_config);
+      if (message && *message &&
+          ha_config.is_discovery_disabled(
+              row->device_flags &
+              SUPLA_DEVICE_FLAG_HOME_ASSISTANT_DISCOVERY_DISABLED)) {
+        // An empty retained message removes the discovery entry that may
+        // have been published before the discovery was disabled.
+        free(*message);
+        *message = NULL;
+        if (message_size) {
+          *message_size = 0;
+        }
+      }
+
+      return true;
     }
   }
   return false;

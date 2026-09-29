@@ -82,32 +82,4 @@ TEST_F(MqttChannelAndStateRemovedTopicsProviderTest, setFunctionToNone) {
   ASSERT_FALSE(dataExists(removed_topics_provider));
 }
 
-TEST_F(MqttChannelAndStateRemovedTopicsProviderTest,
-       disableHomeAssistantDiscovery) {
-  _mqtt_db_data_row_channel_t before = {};
-  _mqtt_db_data_row_channel_t after = {};
-
-  snprintf(before.user_suid, SHORT_UNIQUEID_MAXSIZE,
-           "7720767494dd87196e1896c7cbab707c");
-  before.device_id = 555;
-  before.device_enabled = true;
-  before.channel_id = 754;
-  before.channel_type = SUPLA_CHANNELTYPE_RELAY;
-  before.channel_func = SUPLA_CHANNELFNC_POWERSWITCH;
-  snprintf(before.channel_caption, SUPLA_CHANNEL_CAPTION_MAXSIZE, "Socket");
-  before.channel_hidden = false;
-
-  after = before;
-  after.json_config.set_user_config(
-      "{\"homeAssistant\":{\"homeAssistantDisabled\":true}}");
-
-  removed_topics_provider->set_data(NULL, &before, &after);
-
-  ASSERT_TRUE(fetchAndCompare(
-      removed_topics_provider, NULL, NULL, false,
-      "homeassistant/switch/7720767494dd87196e1896c7cbab707c/754/config"));
-
-  ASSERT_FALSE(dataExists(removed_topics_provider));
-}
-
 } /* namespace testing */

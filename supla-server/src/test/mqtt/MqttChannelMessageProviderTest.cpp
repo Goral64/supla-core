@@ -138,6 +138,11 @@ TEST_F(MqttChannelMessageProviderTest, homeAssistantDiscoveryDisabledByUser) {
       "supla/7720767494dd87196e1896c7cbab707c/devices/%i/channels/%i/hidden",
       row_channel.device_id, row_channel.channel_id));
 
+  ASSERT_TRUE(fetchAndCompare(
+      provider, NULL, NULL, false,
+      "homeassistant/switch/7720767494dd87196e1896c7cbab707c/%i/config",
+      row_channel.channel_id));
+
   ASSERT_FALSE(dataExists(provider));
 }
 
@@ -153,17 +158,24 @@ TEST_F(MqttChannelMessageProviderTest,
   void *message = NULL;
   size_t message_size = 0;
   int count = 0;
+  int ha_count = 0;
 
   while (provider->fetch(NULL, &topic_name, &message, &message_size)) {
-    EXPECT_EQ(strstr(topic_name, "homeassistant/"), nullptr);
+    if (strstr(topic_name, "homeassistant/") == topic_name) {
+      EXPECT_EQ(message, nullptr);
+      EXPECT_EQ(message_size, (size_t)0);
+      ha_count++;
+    }
     free(topic_name);
     free(message);
     topic_name = NULL;
     message = NULL;
+    message_size = 0;
     count++;
   }
 
-  EXPECT_EQ(count, 4);
+  EXPECT_EQ(count, 5);
+  EXPECT_EQ(ha_count, 1);
 }
 
 TEST_F(MqttChannelMessageProviderTest,
@@ -185,6 +197,8 @@ TEST_F(MqttChannelMessageProviderTest,
     if (strcmp(topic_name,
                "homeassistant/switch/7720767494dd87196e1896c7cbab707c/754/"
                "config") == 0) {
+      EXPECT_NE(message, nullptr);
+      EXPECT_GT(message_size, (size_t)0);
       ha_config_found = true;
     }
     free(topic_name);
